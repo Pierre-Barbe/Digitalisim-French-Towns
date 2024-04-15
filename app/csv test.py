@@ -1,5 +1,6 @@
 import csv
 import math
+import requests
 
 # Transfer list
 l_transfer = []
@@ -22,8 +23,12 @@ dict_departement = {'1' : 'Ain', '2' : 'Aisne', '3' : 'Allier', '4' : 'Alpes-de-
                     '984' : 'Terres australes et antarctiques françaises', '986' : 'Wallis-et-Futuna', '987' : 'Polynésie française', '988' : 'Nouvelle-Calédonie',
                     '989' : 'Île de Clipperton', '98' : 'Alpes-Maritimes'}
 
+# Downloading from specified URL and writing to Test file
+r = requests.get('https://www.data.gouv.fr/fr/datasets/r/dbe8a621-a9c4-4bc3-9cae-be1699c5ff25', allow_redirects=True)
+open('app/Test download.csv', 'wb').write(r.content)
+
 # Database Extraction
-with open('app/communes-departement-region.csv', newline='') as csvfile:
+with open('app/Test download.csv', newline='') as csvfile:
     reader = csv.DictReader(csvfile)
 
     #Looping through rows
