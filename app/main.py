@@ -1,15 +1,45 @@
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
-from typing import Union
+from typing import Union, Optional
+from sqlmodel import Field, Session, SQLModel, create_engine, select
+
+
+class Commune(SQLModel, table=True):
+    code_postal: Optional[int] = Field(default=None, primary_key=True)
+    nom_commune: str = Field(index=True)
+    departement: str
+
+
+sqlite_file_name = "database.db"
+sqlite_url = f"sqlite:///{sqlite_file_name}"
+
+connect_args = {"check_same_thread": False}
+engine = create_engine(sqlite_url, echo=True, connect_args=connect_args)
+
+
+def create_db_and_tables():
+    SQLModel.metadata.create_all(engine)
+
 
 app = FastAPI()
 
 
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
+@app.on_event("startup")
+def on_startup():
+    create_db_and_tables()
 
 
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: Union[str, None] = None):
-    return {"item_id": item_id, "q": q}
+@app.post("/commune/")
+def create_commune(commune: Commune):
+    with Session(engine) as session:
+        session.add(commune)
+        session.commit()
+        session.refresh(commune)
+        return commune
+
+
+@app.get("/commune/")
+def read_commune():
+    with Session(engine) as session:
+        commune = session.exec(select(Commune)).all()
+        return commune
